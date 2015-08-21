@@ -1,4 +1,6 @@
 require "smsrb/version"
+require "rest-client"
+require "base64"
 
 module Smsrb
 
@@ -23,13 +25,9 @@ module Smsrb
 
 		def self.send(message_options)
 			message_payload = payload_from_options(message_options)
-			response = RestClient::Request.new(
-		    method: :post,
-		    url: "#{@base_url}/sendsms",
-		    headers: { accept: :json,
-		    content_type: :json,
-		    Authorization:  basic_auth}
-		  ).execute
+			basic_auth_str = "Basic #{basic_auth}"
+			url = "#{@base_url}/send-sms"
+			response = RestClient.post url, message_payload.to_json, {accept: "application/json", content_type: "application/json", :Authorization => basic_auth_str}
 		  results = JSON.parse(response.to_str)
 		  results
 		end
@@ -42,7 +40,7 @@ module Smsrb
 			payload = {sendSmsRequest: {}}
 			payload[:sendSmsRequest][:from] = message_options[:from]
 			payload[:sendSmsRequest][:to] = message_options[:to]
-			payload[:sendSmsRequest][:msg] = message_options[:message]
+			payload[:sendSmsRequest][:msg] = message_options[:msg]
 			payload
 		end
 	
